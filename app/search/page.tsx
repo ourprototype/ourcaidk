@@ -41,7 +41,7 @@ export default function SearchPage() {
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <a href="/" className="text-4xl font-bold">our.ca</a>
           <a href="/" className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all">
-            back to home
+            home
           </a>
         </div>
       </nav>
@@ -200,16 +200,17 @@ export default function SearchPage() {
                 <h2 className="text-2xl font-bold text-[#af2d17] mb-4">Businesses</h2>
                 <div className="space-y-4">
                   {filteredBusinesses.map((business) => (
-                    <div 
+                    <a
                       key={business.id}
-                      className="bg-white border-2 border-[#af2d17] rounded-lg p-6 hover:shadow-lg transition-shadow"
+                      href={`/profile/${business.slug}`}
+                      className="block bg-white border-2 border-[#af2d17] rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
                     >
                       <div className="flex gap-4">
                         {/* Photo Placeholder */}
                         <div className="w-20 h-20 bg-gray-200 rounded flex-shrink-0 flex items-center justify-center text-3xl">
                           🏢
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-xl font-bold text-[#af2d17]">{business.name}</h3>
@@ -219,15 +220,15 @@ export default function SearchPage() {
                               </span>
                             )}
                           </div>
-                          
+
                           <div className="space-y-1 text-gray-700">
                             <p>📍 {business.city}, {business.province}</p>
                             <p>📞 {business.phone}</p>
-                            {business.email && <p>✉️ {business.email}</p>}
+                            {business.ourEmail && <p>✉️ {business.ourEmail}</p>}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -239,16 +240,17 @@ export default function SearchPage() {
                 <h2 className="text-2xl font-bold text-[#af2d17] mb-4">People</h2>
                 <div className="space-y-4">
                   {filteredIndividuals.map((person) => (
-                    <div 
+                    <a
                       key={person.id}
-                      className="bg-white border-2 border-[#af2d17] rounded-lg p-6 hover:shadow-lg transition-shadow"
+                      href={`/profile/${person.slug}`}
+                      className="block bg-white border-2 border-[#af2d17] rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
                     >
                       <div className="flex gap-4">
                         {/* Photo Placeholder */}
                         <div className="w-20 h-20 bg-[#af2d17] rounded-full flex-shrink-0 flex items-center justify-center text-2xl font-bold text-white">
                           {person.name.split(' ').map(n => n[0]).join('')}
                         </div>
-                        
+
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
                             <h3 className="text-xl font-bold text-[#af2d17]">{person.name}</h3>
@@ -258,15 +260,15 @@ export default function SearchPage() {
                               </span>
                             )}
                           </div>
-                          
+
                           <div className="space-y-1 text-gray-700">
                             <p>📍 {person.city}, {person.province}</p>
-                            {person.email && <p>✉️ {person.email}</p>}
+                            {person.ourEmail && <p>✉️ {person.ourEmail}</p>}
                             {person.phone && <p>📞 {person.phone}</p>}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>

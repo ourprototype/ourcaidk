@@ -1,15 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 export default function Home() {
   const router = useRouter()
-  const [showLoginDropdown, setShowLoginDropdown] = useState(false)
+  const [showSignupDropdown, setShowSignupDropdown] = useState(false)
   const [showYourInfoDropdown, setShowYourInfoDropdown] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userType, setUserType] = useState<'business' | 'personal'>('personal')
   const [searchQuery, setSearchQuery] = useState('')
   const [location, setLocation] = useState('Toronto, ON')
+
+  useEffect(() => {
+    // Check login state from localStorage
+    const loggedIn = localStorage.getItem('isLoggedIn') === 'true'
+    const type = localStorage.getItem('userType') as 'business' | 'personal' || 'personal'
+    setIsLoggedIn(loggedIn)
+    setUserType(type)
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('userType')
+    localStorage.removeItem('userEmail')
+    setIsLoggedIn(false)
+    setShowYourInfoDropdown(false)
+  }
 
   const handleSearch = () => {
     const params = new URLSearchParams()
@@ -25,41 +42,52 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <a href="/" className="text-4xl font-bold">our.ca</a>
           
-          <div className="flex gap-4 relative">
-            {!isLoggedIn ? (
-              <div className="relative">
-                <button
-                  onClick={() => setShowLoginDropdown(!showLoginDropdown)}
-                  className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
-                >
-                  log in / sign up
-                </button>
-                
-                {showLoginDropdown && (
-                  <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
-                    <a href="/signup?type=business" className="block px-4 py-2 hover:bg-gray-100">business</a>
-                    <a href="/signup?type=personal" className="block px-4 py-2 hover:bg-gray-100">personal</a>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="relative">
-                <button
-                  onClick={() => setShowYourInfoDropdown(!showYourInfoDropdown)}
-                  className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
-                >
-                  your info
-                </button>
-                
-                {showYourInfoDropdown && (
-                  <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
-                    <a href="/profile/edit" className="block px-4 py-2 hover:bg-gray-100">edit</a>
-                    <a href="/settings" className="block px-4 py-2 hover:bg-gray-100">settings</a>
-                    <button onClick={() => setIsLoggedIn(false)} className="block w-full text-left px-4 py-2 hover:bg-gray-100">log out</button>
-                  </div>
-                )}
-              </div>
-            )}
+          <div className="flex gap-3 relative">
+            {/* Sign Up Button - Always visible */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowSignupDropdown(!showSignupDropdown)
+                  setShowYourInfoDropdown(false)
+                }}
+                className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
+              >
+                sign up
+              </button>
+
+              {showSignupDropdown && (
+                <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
+                  <a href="/signup?type=business" className="block px-4 py-2 hover:bg-gray-100">business</a>
+                  <a href="/signup?type=personal" className="block px-4 py-2 hover:bg-gray-100">personal</a>
+                </div>
+              )}
+            </div>
+
+            {/* Your Info Button - Always visible */}
+            <div className="relative">
+              <button
+                onClick={() => {
+                  setShowYourInfoDropdown(!showYourInfoDropdown)
+                  setShowSignupDropdown(false)
+                }}
+                className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
+              >
+                your info
+              </button>
+
+              {showYourInfoDropdown && (
+                <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
+                  {!isLoggedIn ? (
+                    <a href="/login" className="block px-4 py-2 hover:bg-gray-100 font-medium">log in</a>
+                  ) : (
+                    <>
+                      <a href="/dashboard" className="block px-4 py-2 hover:bg-gray-100">edit info</a>
+                      <button onClick={handleLogout} className="block w-full text-left px-4 py-2 hover:bg-gray-100 border-t border-gray-200">log out</button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </nav>
@@ -121,17 +149,15 @@ export default function Home() {
       </main>
 
       {/* Footer CTA */}
-      <div className="bg-[#af2d17] text-white py-8">
+      <div className="bg-[#af2d17] text-white py-4">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="text-3xl font-bold">
+          <div className="text-xl font-bold">
             Your essential information, all in one place.
           </div>
-          <div className="text-right">
-            <div className="text-2xl font-bold mb-1">
-              Get verified for $1.17/month.
-            </div>
-            <a href="/learn-more" className="text-lg underline hover:opacity-80">
-              Learn more here.
+          <div className="text-right flex items-center gap-4">
+            <span className="text-lg font-bold">Get verified for $1.17/month.</span>
+            <a href="/learn-more" className="underline hover:opacity-80">
+              Learn more
             </a>
           </div>
         </div>
