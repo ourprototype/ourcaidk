@@ -1,19 +1,33 @@
 'use client'
 
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { searchData } from '@/lib/mockData'
 import { useState } from 'react'
 
 export default function SearchPage() {
   const searchParams = useSearchParams()
-  const query = searchParams.get('q') || ''
+  const router = useRouter()
+  const initialQuery = searchParams.get('q') || ''
   const type = (searchParams.get('type') as 'all' | 'businesses' | 'people') || 'all'
   const location = searchParams.get('location') || ''
-  
+
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [searchType, setSearchType] = useState<'all' | 'businesses' | 'people'>(type)
   const [sortBy, setSortBy] = useState<'relevance' | 'location'>('relevance')
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
-  
-  const { businesses, individuals } = searchData(query, type, location)
+
+  // TODO: This should come from auth state - for now, simulating unverified user
+  const [isUserVerified, setIsUserVerified] = useState(false)
+
+  const handleSearchUpdate = () => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set('q', searchQuery)
+    if (location) params.set('location', location)
+    if (searchType !== 'all') params.set('type', searchType)
+    router.push(`/search?${params.toString()}`)
+  }
+
+  const { businesses, individuals } = searchData(searchQuery, searchType, location)
   
   const filteredBusinesses = showVerifiedOnly ? businesses.filter(b => b.verified) : businesses
   const filteredIndividuals = showVerifiedOnly ? individuals.filter(i => i.premium) : individuals
@@ -34,9 +48,24 @@ export default function SearchPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#af2d17] mb-2">
-            Search Results for "{query}"
-          </h1>
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-3xl font-bold text-[#af2d17]">Search Results for "</span>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchUpdate()}
+              className="text-3xl font-bold text-[#af2d17] border-b-2 border-[#af2d17] focus:outline-none bg-transparent"
+              style={{ width: `${Math.max(searchQuery.length, 1) * 18}px` }}
+            />
+            <span className="text-3xl font-bold text-[#af2d17]">"</span>
+            <button
+              onClick={handleSearchUpdate}
+              className="ml-2 bg-[#af2d17] text-white px-4 py-1 rounded text-sm font-medium hover:bg-[#8f2513] transition-colors"
+            >
+              Update
+            </button>
+          </div>
           <p className="text-gray-600">
             {totalResults} {totalResults === 1 ? 'result' : 'results'} found
             {location && ` in ${location}`}
@@ -48,9 +77,96 @@ export default function SearchPage() {
           <aside className="w-64 flex-shrink-0">
             <div className="bg-gray-50 border-2 border-[#af2d17] rounded-lg p-6 sticky top-8">
               <h3 className="font-bold text-lg text-[#af2d17] mb-6">Filters</h3>
-              
-              {/* Sort By */}
+
+              {/* Type */}
               <div className="mb-6">
+                <h4 className="font-medium text-gray-900 mb-3">Type</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={searchType === 'all'}
+                      onChange={() => setSearchType('all')}
+                      className="mr-2"
+                    />
+                    <span className="text-gray-700">All</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={searchType === 'businesses'}
+                      onChange={() => setSearchType('businesses')}
+                      className="mr-2"
+                    />
+                    <span className="text-gray-700">Businesses</span>
+                  </label>
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={searchType === 'people'}
+                      onChange={() => setSearchType('people')}
+                      className="mr-2"
+                    />
+                    <span className="text-gray-700">People</span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Keywords */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                  Keywords
+                  {!isUserVerified && <span className="text-lg">🔒</span>}
+                </h4>
+                <div className={`${!isUserVerified ? 'bg-gray-200 border-2 border-gray-400 opacity-50' : 'bg-white border-2 border-[#af2d17]'} rounded-lg p-4`}>
+                  <input
+                    type="text"
+                    disabled={!isUserVerified}
+                    placeholder="Add +"
+                    className={`w-full px-3 py-2 border border-gray-300 rounded text-sm ${!isUserVerified ? 'bg-white cursor-not-allowed' : 'focus:outline-none focus:ring-2 focus:ring-[#af2d17]'}`}
+                  />
+                </div>
+                {!isUserVerified && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    <a href="/learn-more" className="text-[#af2d17] hover:underline">Get verified</a> to unlock
+                  </p>
+                )}
+              </div>
+
+              {/* Show */}
+              <div className="mb-6">
+                <h4 className="font-medium text-gray-900 mb-3">Show</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="radio"
+                      checked={!showVerifiedOnly}
+                      onChange={() => setShowVerifiedOnly(false)}
+                      className="mr-2"
+                    />
+                    <span className="text-gray-700">All users</span>
+                  </label>
+                  <label className={`flex items-center ${isUserVerified ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
+                    <input
+                      type="radio"
+                      checked={showVerifiedOnly}
+                      onChange={() => isUserVerified && setShowVerifiedOnly(true)}
+                      disabled={!isUserVerified}
+                      className="mr-2"
+                    />
+                    <span className="text-gray-700">Verified users only</span>
+                    {!isUserVerified && <span className="ml-2 text-lg">🔒</span>}
+                  </label>
+                  {!isUserVerified && (
+                    <p className="text-xs text-gray-500 ml-5">
+                      <a href="/learn-more" className="text-[#af2d17] hover:underline">Get verified</a> to unlock
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Sort By */}
+              <div>
                 <h4 className="font-medium text-gray-900 mb-3">Sort By</h4>
                 <div className="space-y-2">
                   <label className="flex items-center cursor-pointer">
@@ -71,53 +187,6 @@ export default function SearchPage() {
                     />
                     <span className="text-gray-700">Location</span>
                   </label>
-                </div>
-              </div>
-
-              {/* Show */}
-              <div className="mb-6">
-                <h4 className="font-medium text-gray-900 mb-3">Show</h4>
-                <div className="space-y-2">
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={!showVerifiedOnly}
-                      onChange={() => setShowVerifiedOnly(false)}
-                      className="mr-2"
-                    />
-                    <span className="text-gray-700">All users</span>
-                  </label>
-                  <label className="flex items-center cursor-pointer">
-                    <input
-                      type="radio"
-                      checked={showVerifiedOnly}
-                      onChange={() => setShowVerifiedOnly(true)}
-                      className="mr-2"
-                    />
-                    <span className="text-gray-700">Verified users only</span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Keywords - LOCKED */}
-              <div>
-                <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                  Keywords 
-                  <span className="text-lg">🔒</span>
-                </h4>
-                <div className="bg-gray-200 border-2 border-gray-400 rounded-lg p-4">
-                  <input
-                    type="text"
-                    disabled
-                    placeholder="Search by keywords..."
-                    className="w-full px-3 py-2 border border-gray-300 rounded bg-white opacity-50 cursor-not-allowed text-sm"
-                  />
-                  <div className="mt-3 text-center">
-                    <p className="text-xs text-gray-600 mb-2">Unlock with Premium</p>
-                    <a href="/learn-more" className="text-xs font-medium text-[#af2d17] hover:underline">
-                      Upgrade Now →
-                    </a>
-                  </div>
                 </div>
               </div>
             </div>

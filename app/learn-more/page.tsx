@@ -1,6 +1,12 @@
+'use client'
+
+import { useState } from 'react'
+
 export default function LearnMorePage() {
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('yearly')
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white flex flex-col">
       {/* Header */}
       <nav className="bg-[#af2d17] text-white py-4">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
@@ -11,171 +17,224 @@ export default function LearnMorePage() {
         </div>
       </nav>
 
-      {/* Hero Message */}
-      <section className="bg-gray-50 py-16">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h1 className="text-6xl font-bold text-[#af2d17] mb-6">
-            Your essential information, all in one place.
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col px-6 py-8">
+        {/* CTA Message */}
+        <div className="text-center mb-8">
+          <h1 className="text-[#af2d17] font-bold text-6xl">
+            Our hub for contact information.
           </h1>
-          <p className="text-2xl text-gray-700 mb-4">
-            Choose exactly how you want to be found.
-          </p>
-          <p className="text-2xl text-gray-700 mb-4">
-            Establish your unified identity.
-          </p>
-          <p className="text-2xl text-gray-700">
-            With an @our.ca email address, too.
-          </p>
         </div>
-      </section>
 
-      {/* Side-by-Side Comparison */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* BUSINESSES */}
-            <div>
-              <h2 className="text-4xl font-bold text-[#af2d17] mb-8">Businesses</h2>
-              
-              {/* Free/Unclaimed */}
-              <div className="mb-12">
-                <h3 className="text-2xl font-bold mb-4">Unclaimed</h3>
-                <p className="text-lg text-gray-700 mb-4">
-                  You're listed. But it's not really yours.
-                </p>
-                <p className="text-gray-600 mb-4">
-                  Basic info. No photos. No control. Standard placement.
-                </p>
-                <p className="font-medium text-[#af2d17]">
-                  → Claim your profile free. Take control.
-                </p>
-              </div>
+        {/* Billing Toggle */}
+        <div className="text-center mb-6">
+          <div className="inline-flex bg-gray-100 rounded-xl p-1.5 gap-1">
+            <button
+              onClick={() => setBillingPeriod('monthly')}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                billingPeriod === 'monthly'
+                  ? 'bg-white text-[#af2d17] shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBillingPeriod('yearly')}
+              className={`px-6 py-2 rounded-lg font-medium transition-all ${
+                billingPeriod === 'yearly'
+                  ? 'bg-white text-[#af2d17] shadow-md'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Yearly <span className="text-green-600 text-sm ml-1">Save 33%</span>
+            </button>
+          </div>
+        </div>
 
-              {/* Verified */}
-              <div className="border-4 border-[#af2d17] rounded-lg p-8">
-                <h3 className="text-3xl font-bold mb-2">Verified</h3>
-                <p className="text-xl text-[#af2d17] font-bold mb-6">$2.99/month or $24/year</p>
-                
-                <p className="text-lg font-bold mb-4">Your business. Your rules. Priority visibility.</p>
-                
-                <div className="space-y-3 text-gray-700">
-                  <p>• Upload your logo and 7 photos</p>
-                  <p>• Display your email and business hours</p>
-                  <p>• Write your own description</p>
-                  <p>• Link to your website and social media</p>
-                  <p>• Get the verification badge customers trust</p>
-                  <p>• Rank higher in search results</p>
-                  <p>• Customize your colors and fonts to match your brand</p>
-                  <p>• Professional @our.ca email included</p>
+        {/* Comparison Section */}
+        <div className="flex-1 flex items-end">
+          <div className="max-w-6xl mx-auto w-full pb-8">
+            <div className="grid md:grid-cols-2 gap-8">
+
+              {/* BUSINESS COLUMN */}
+              <div className="flex flex-col">
+                <div className="bg-[#af2d17] text-white text-center py-3 rounded-t-xl">
+                  <h2 className="text-2xl font-bold">Business</h2>
                 </div>
 
-                <p className="mt-6 text-sm text-gray-600 italic">
-                  For less than a coffee, you control how customers find you.
-                </p>
+                <div className="grid grid-cols-2 border-2 border-t-0 border-[#af2d17] rounded-b-xl overflow-hidden flex-1">
+                  {/* Basic */}
+                  <div className="p-5 border-r border-gray-200 bg-gray-50 flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-800">Basic</h3>
+                    <div className="text-2xl font-bold text-gray-800 mb-4">Free</div>
 
-                <p className="mt-4 font-bold text-[#af2d17]">
-                  First 5,000 businesses: 3 months free.
-                </p>
+                    <ul className="space-y-2 text-sm text-gray-700 flex-1">
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>Basic listing (name, phone, address)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>Standard search placement</span>
+                      </li>
+                    </ul>
+
+                    <a href="/signup?type=business" className="block mt-5 text-center py-2.5 border-2 border-[#af2d17] text-[#af2d17] rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                      Claim Free
+                    </a>
+                  </div>
+
+                  {/* Verified */}
+                  <div className="p-5 bg-white relative flex flex-col">
+                    <div className="absolute top-0 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-b-lg font-medium">
+                      RECOMMENDED
+                    </div>
+                    <h3 className="text-xl font-bold text-[#af2d17]">Verified</h3>
+                    <div className="mb-4">
+                      {billingPeriod === 'monthly' ? (
+                        <span className="text-2xl font-bold text-[#af2d17]">$2.99<span className="text-sm font-normal">/mo</span></span>
+                      ) : (
+                        <div>
+                          <span className="text-2xl font-bold text-[#af2d17]">$24<span className="text-sm font-normal">/yr</span></span>
+                          <span className="text-sm text-green-600 ml-2">($2/mo)</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <ul className="space-y-2 text-sm text-gray-700 flex-1">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>Full customization (photos, description, hours)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>Links (website, social, menus/files)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>@our.ca email with forwarding</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Verification badge</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Search ranking prioritization</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Ratings</span>
+                      </li>
+                    </ul>
+
+                    <a href="/signup?type=business&plan=verified" className="block mt-5 text-center py-2.5 bg-[#af2d17] text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                      Get Verified
+                    </a>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div></div>
+                  <p className="text-center text-[#af2d17] mt-3 font-bold text-lg">
+                    3 months free
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* PERSONAL */}
-            <div>
-              <h2 className="text-4xl font-bold text-[#af2d17] mb-8">Personal</h2>
-              
-              {/* Free */}
-              <div className="mb-12">
-                <h3 className="text-2xl font-bold mb-4">Free</h3>
-                <p className="text-lg text-gray-700 mb-4">
-                  Be findable. Keep it simple.
-                </p>
-                <p className="text-gray-600 mb-4">
-                  One photo. Basic info. Limited visibility.
-                </p>
-                <p className="font-medium">
-                  Good enough to be found.
-                </p>
-              </div>
-
-              {/* Premium */}
-              <div className="border-4 border-[#af2d17] rounded-lg p-8">
-                <h3 className="text-3xl font-bold mb-2">Premium</h3>
-                <p className="text-xl text-[#af2d17] font-bold mb-6">$1.99/month or $14/year</p>
-                
-                <p className="text-lg font-bold mb-4">Your identity. Fully under your control.</p>
-                
-                <div className="space-y-3 text-gray-700">
-                  <p>• Multiple photos and custom cover image</p>
-                  <p>• Fully customizable layout—design it your way</p>
-                  <p>• Choose your own colors and fonts</p>
-                  <p>• Display email AND phone</p>
-                  <p>• Link to your portfolio, social media, and website</p>
-                  <p>• Be discovered by keywords (others search "photographer Toronto" and find you)</p>
-                  <p>• Privacy controls—decide who sees what</p>
-                  <p>• Professional @our.ca email included</p>
+              {/* PERSONAL COLUMN */}
+              <div className="flex flex-col">
+                <div className="bg-[#af2d17] text-white text-center py-3 rounded-t-xl">
+                  <h2 className="text-2xl font-bold">Personal</h2>
                 </div>
 
-                <p className="mt-6 text-sm text-gray-600 italic">
-                  Your personal website—without building a website.
-                </p>
+                <div className="grid grid-cols-2 border-2 border-t-0 border-[#af2d17] rounded-b-xl overflow-hidden flex-1">
+                  {/* Free */}
+                  <div className="p-5 border-r border-gray-200 bg-gray-50 flex flex-col">
+                    <h3 className="text-xl font-bold text-gray-800">Free</h3>
+                    <div className="text-2xl font-bold text-gray-800 mb-4">Free</div>
 
-                <p className="mt-4 font-bold text-[#af2d17]">
-                  First 7,500 users: 3 months free. 5,342 spots left.
-                </p>
+                    <ul className="space-y-2 text-sm text-gray-700 flex-1">
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>Basic profile info</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>1 photo</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>Email OR phone</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-gray-400 mt-0.5">✓</span>
+                        <span>Standard search placement</span>
+                      </li>
+                    </ul>
+
+                    <a href="/signup?type=personal" className="block mt-5 text-center py-2.5 border-2 border-[#af2d17] text-[#af2d17] rounded-lg font-medium hover:bg-gray-100 transition-colors">
+                      Sign Up Free
+                    </a>
+                  </div>
+
+                  {/* Premium */}
+                  <div className="p-5 bg-white relative flex flex-col">
+                    <div className="absolute top-0 right-3 bg-green-500 text-white text-xs px-2 py-1 rounded-b-lg font-medium">
+                      RECOMMENDED
+                    </div>
+                    <h3 className="text-xl font-bold text-[#af2d17]">Premium</h3>
+                    <div className="mb-4">
+                      {billingPeriod === 'monthly' ? (
+                        <span className="text-2xl font-bold text-[#af2d17]">$1.99<span className="text-sm font-normal">/mo</span></span>
+                      ) : (
+                        <div>
+                          <span className="text-2xl font-bold text-[#af2d17]">$14<span className="text-sm font-normal">/yr</span></span>
+                          <span className="text-sm text-green-600 ml-2">($1.17/mo)</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <ul className="space-y-2 text-sm text-gray-700 flex-1">
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>Full customization (layout, photos, cover, bio)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>Links (social, website previews, files)</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span>@our.ca email with forwarding</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Higher search ranking</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Keyword discovery</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-green-600 mt-0.5">✓</span>
+                        <span className="font-medium">Privacy controls</span>
+                      </li>
+                    </ul>
+
+                    <a href="/signup?type=personal&plan=premium" className="block mt-5 text-center py-2.5 bg-[#af2d17] text-white rounded-lg font-medium hover:opacity-90 transition-opacity">
+                      Go Premium
+                    </a>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2">
+                  <div></div>
+                  <p className="text-center text-[#af2d17] mt-3 font-bold text-lg">
+                    6 months free
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Summary */}
-      <section className="bg-gray-50 py-16">
-        <div className="max-w-6xl mx-auto px-6 text-center">
-          <h2 className="text-4xl font-bold text-[#af2d17] mb-8">Why upgrade?</h2>
-          
-          <div className="grid md:grid-cols-2 gap-12 text-left">
-            <div>
-              <h3 className="text-2xl font-bold mb-4">For businesses:</h3>
-              <p className="text-lg text-gray-700">
-                Verified profiles rank higher, look more professional, and get more customers. For $2.99/month, you control your reputation.
-              </p>
-            </div>
-            
-            <div>
-              <h3 className="text-2xl font-bold mb-4">For individuals:</h3>
-              <p className="text-lg text-gray-700">
-                Premium profiles get found. Freelancers, consultants, and professionals who want to be discoverable choose premium.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-12">
-            <p className="text-2xl font-bold text-gray-900 mb-2">
-              The question isn't "should I upgrade?"
-            </p>
-            <p className="text-3xl font-bold text-[#af2d17]">
-              It's "can I afford not to?"
-            </p>
-          </div>
-
-          <div className="mt-12">
-            <a href="/signup" className="inline-block bg-[#af2d17] text-white px-12 py-4 rounded text-xl font-bold hover:opacity-90 transition-opacity">
-              Get Started Now
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <div className="bg-[#af2d17] text-white py-8">
-        <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
-          <div className="text-2xl font-bold">
-            the hub for essential information
-          </div>
-          <div className="text-right">
-            <a href="/" className="text-lg underline hover:opacity-80">
-              Back to home
-            </a>
           </div>
         </div>
       </div>

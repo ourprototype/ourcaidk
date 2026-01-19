@@ -1,11 +1,22 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 export default function Home() {
+  const router = useRouter()
   const [showLoginDropdown, setShowLoginDropdown] = useState(false)
   const [showYourInfoDropdown, setShowYourInfoDropdown] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [location, setLocation] = useState('Toronto, ON')
+
+  const handleSearch = () => {
+    const params = new URLSearchParams()
+    if (searchQuery) params.set('q', searchQuery)
+    if (location) params.set('location', location)
+    router.push(`/search?${params.toString()}`)
+  }
 
   return (
     <div className="min-h-screen bg-white flex flex-col">
@@ -72,29 +83,39 @@ export default function Home() {
                 <button className="text-gray-600 hover:text-[#af2d17] font-medium">People</button>
               </div>
 
-              {/* Search Inputs */}
-              <div className="flex gap-4 mb-4">
+              {/* Search Input with Location */}
+              <div className="flex border-2 border-[#af2d17] rounded overflow-hidden">
                 <input
                   type="text"
                   placeholder="Search by name or phone number"
-                  className="flex-1 px-4 py-3 border-2 border-[#af2d17] rounded text-lg focus:outline-none focus:ring-2 focus:ring-[#af2d17]"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="flex-1 px-4 py-3 text-lg focus:outline-none"
                 />
-              </div>
-              
-              {/* Location */}
-              <div className="flex justify-end">
-                <input
-                  type="text"
-                  defaultValue="Toronto, ON"
-                  className="px-4 py-2 border-2 border-[#af2d17] rounded text-base focus:outline-none focus:ring-2 focus:ring-[#af2d17]"
-                />
+                <div className="flex items-center border-l-2 border-[#af2d17]">
+                  <input
+                    type="text"
+                    value={location}
+                    onChange={(e) => setLocation(e.target.value)}
+                    className="px-4 py-3 text-lg text-gray-600 focus:outline-none w-40 text-center"
+                  />
+                </div>
+                <button
+                  onClick={handleSearch}
+                  className="bg-[#af2d17] text-white px-6 py-3 text-lg font-medium hover:bg-[#8f2513] transition-colors"
+                >
+                  Search
+                </button>
               </div>
             </div>
 
             {/* Tagline */}
-            <p className="text-xl text-gray-700 max-w-4xl mx-auto">
-              Helping businesses and individuals control how they're found and contacted.
-            </p>
+            <div className="max-w-4xl mx-auto">
+              <p className="text-lg text-gray-700">
+                The quickest way to find and be found. Your info, your way.
+              </p>
+            </div>
           </div>
         </div>
       </main>
@@ -103,7 +124,7 @@ export default function Home() {
       <div className="bg-[#af2d17] text-white py-8">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <div className="text-3xl font-bold">
-            the hub for essential information
+            Your essential information, all in one place.
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold mb-1">
