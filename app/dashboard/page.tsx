@@ -20,7 +20,7 @@ const SOCIAL_PLATFORMS = [
 ]
 
 // Layout block types
-type BlockType = 'photos' | 'name' | 'bio' | 'contact' | 'links' | 'social'
+type BlockType = 'photos' | 'name' | 'contact' | 'social' | 'links'
 
 interface LayoutBlock {
   id: string
@@ -80,10 +80,9 @@ interface ProfileData {
 const defaultLayout: LayoutBlock[] = [
   { id: 'photos', type: 'photos', order: 0 },
   { id: 'name', type: 'name', order: 1 },
-  { id: 'bio', type: 'bio', order: 2 },
-  { id: 'contact', type: 'contact', order: 3 },
+  { id: 'contact', type: 'contact', order: 2 },
+  { id: 'social', type: 'social', order: 3 },
   { id: 'links', type: 'links', order: 4 },
-  { id: 'social', type: 'social', order: 5 },
 ]
 
 const defaultProfile: ProfileData = {
@@ -455,7 +454,7 @@ export default function DashboardPage() {
 
       name: (
         <div className="border-2 border-[#af2d17] rounded-lg p-4">
-          <h3 className="text-lg font-bold text-[#af2d17] mb-3">Name & Title</h3>
+          <h3 className="text-lg font-bold text-[#af2d17] mb-3">Name, Title & Bio</h3>
           <div className="space-y-3">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
@@ -476,20 +475,17 @@ export default function DashboardPage() {
                 className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
+              <textarea
+                value={profile.bio}
+                onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
+                rows={3}
+                placeholder="Tell people about yourself..."
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none resize-none"
+              />
+            </div>
           </div>
-        </div>
-      ),
-
-      bio: (
-        <div className="border-2 border-[#af2d17] rounded-lg p-4">
-          <h3 className="text-lg font-bold text-[#af2d17] mb-3">Bio</h3>
-          <textarea
-            value={profile.bio}
-            onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-            rows={4}
-            placeholder="Tell people about yourself..."
-            className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none resize-none"
-          />
         </div>
       ),
 
@@ -497,6 +493,24 @@ export default function DashboardPage() {
         <div className="border-2 border-[#af2d17] rounded-lg p-4">
           <h3 className="text-lg font-bold text-[#af2d17] mb-3">Contact Information</h3>
           <div className="grid md:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+              <input
+                type="tel"
+                value={profile.phone}
+                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input
+                type="email"
+                value={profile.email}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
               <input
@@ -529,24 +543,6 @@ export default function DashboardPage() {
                 <option value="YT">Yukon</option>
               </select>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input
-                type="tel"
-                value={profile.phone}
-                onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                value={profile.email}
-                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                className="w-full px-3 py-2 border-2 border-gray-300 rounded focus:border-[#af2d17] focus:outline-none"
-              />
-            </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-1">@our.ca Email</label>
               <input
@@ -564,7 +560,7 @@ export default function DashboardPage() {
       links: (
         <div className="border-2 border-[#af2d17] rounded-lg p-4">
           <div className="flex justify-between items-center mb-3">
-            <h3 className="text-lg font-bold text-[#af2d17]">Custom Links</h3>
+            <h3 className="text-lg font-bold text-[#af2d17]">Additional Links / Files</h3>
             {!profile.isPremium && (
               <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Premium only</span>
             )}
@@ -741,8 +737,7 @@ export default function DashboardPage() {
           <a href="/" className="text-4xl font-bold">our.ca</a>
           <div className="flex items-center gap-3">
             <a
-              href={`/profile/me`}
-              target="_blank"
+              href="/profile/me"
               className="px-4 py-2 bg-white/20 rounded hover:bg-white/30 transition-all text-sm"
             >
               View Public Profile
@@ -1029,24 +1024,16 @@ function ProfilePreview({
               ★ Verified
             </span>
           )}
+          {profile.privacy.showBio && profile.bio && (
+            <p className="text-gray-700 leading-relaxed mt-3">{profile.bio}</p>
+          )}
         </div>
       ),
-
-      bio: profile.privacy.showBio && profile.bio ? (
-        <div>
-          <p className="text-gray-700 leading-relaxed">{profile.bio}</p>
-        </div>
-      ) : null,
 
       contact: (
         <div className="bg-gray-50 rounded-lg p-4">
           <h3 className="font-bold text-[#af2d17] mb-3">Contact</h3>
           <div className="space-y-2">
-            {profile.privacy.showCity && (profile.city || profile.province) && (
-              <p className="text-gray-700">
-                📍 {[profile.city, profile.province].filter(Boolean).join(', ')}
-              </p>
-            )}
             {profile.privacy.showPhone && profile.phone && (
               <p className="text-gray-700">
                 📞 <a href={`tel:${profile.phone}`} className="text-[#af2d17] hover:underline">{profile.phone}</a>
@@ -1055,6 +1042,11 @@ function ProfilePreview({
             {profile.privacy.showEmail && profile.email && (
               <p className="text-gray-700">
                 ✉️ <a href={`mailto:${profile.email}`} className="text-[#af2d17] hover:underline">{profile.email}</a>
+              </p>
+            )}
+            {profile.privacy.showCity && (profile.city || profile.province) && (
+              <p className="text-gray-700">
+                📍 {[profile.city, profile.province].filter(Boolean).join(', ')}
               </p>
             )}
             {profile.privacy.showOurEmail && profile.ourEmail && (
@@ -1141,8 +1133,7 @@ function ProfilePreview({
           {/* Right - Info */}
           <div className="lg:w-3/5 space-y-4">
             {renderBlock({ id: 'name', type: 'name', order: 1 })}
-            {renderBlock({ id: 'bio', type: 'bio', order: 2 })}
-            {renderBlock({ id: 'contact', type: 'contact', order: 3 })}
+            {renderBlock({ id: 'contact', type: 'contact', order: 2 })}
           </div>
         </div>
       </div>

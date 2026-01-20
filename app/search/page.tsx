@@ -12,6 +12,7 @@ export default function SearchPage() {
   const location = searchParams.get('location') || ''
 
   const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const [searchLocation, setSearchLocation] = useState(location)
   const [searchType, setSearchType] = useState<'all' | 'businesses' | 'people'>(type)
   const [sortBy, setSortBy] = useState<'relevance' | 'location'>('relevance')
   const [showVerifiedOnly, setShowVerifiedOnly] = useState(false)
@@ -22,12 +23,12 @@ export default function SearchPage() {
   const handleSearchUpdate = () => {
     const params = new URLSearchParams()
     if (searchQuery) params.set('q', searchQuery)
-    if (location) params.set('location', location)
+    if (searchLocation) params.set('location', searchLocation)
     if (searchType !== 'all') params.set('type', searchType)
     router.push(`/search?${params.toString()}`)
   }
 
-  const { businesses, individuals } = searchData(searchQuery, searchType, location)
+  const { businesses, individuals } = searchData(searchQuery, searchType, searchLocation)
   
   const filteredBusinesses = showVerifiedOnly ? businesses.filter(b => b.verified) : businesses
   const filteredIndividuals = showVerifiedOnly ? individuals.filter(i => i.premium) : individuals
@@ -66,10 +67,19 @@ export default function SearchPage() {
               Update
             </button>
           </div>
-          <p className="text-gray-600">
-            {totalResults} {totalResults === 1 ? 'result' : 'results'} found
-            {location && ` in ${location}`}
-          </p>
+          <div className="flex items-center gap-2 text-gray-600">
+            <span>{totalResults} {totalResults === 1 ? 'result' : 'results'} found</span>
+            <span>in</span>
+            <input
+              type="text"
+              value={searchLocation}
+              onChange={(e) => setSearchLocation(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearchUpdate()}
+              placeholder="Location"
+              className="border-b-2 border-gray-400 focus:border-[#af2d17] focus:outline-none bg-transparent px-1"
+              style={{ width: `${Math.max(searchLocation.length, 8) * 9}px` }}
+            />
+          </div>
         </div>
 
         <div className="flex gap-8">

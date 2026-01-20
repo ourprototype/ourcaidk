@@ -20,7 +20,7 @@ const SOCIAL_PLATFORMS = [
 ]
 
 // Layout block types
-type BlockType = 'photos' | 'name' | 'bio' | 'contact' | 'links' | 'social'
+type BlockType = 'photos' | 'name' | 'contact' | 'social' | 'links'
 
 interface LayoutBlock {
   id: string
@@ -80,10 +80,9 @@ interface ProfileData {
 const defaultLayout: LayoutBlock[] = [
   { id: 'photos', type: 'photos', order: 0 },
   { id: 'name', type: 'name', order: 1 },
-  { id: 'bio', type: 'bio', order: 2 },
-  { id: 'contact', type: 'contact', order: 3 },
+  { id: 'contact', type: 'contact', order: 2 },
+  { id: 'social', type: 'social', order: 3 },
   { id: 'links', type: 'links', order: 4 },
-  { id: 'social', type: 'social', order: 5 },
 ]
 
 // Social Icon Component
@@ -346,7 +345,7 @@ export default function ProfilePage() {
     </div>
   )
 
-  // Render name section
+  // Render name, title & bio section
   const NameSection = () => (
     <div>
       {profile.privacy.showName && profile.name && (
@@ -362,16 +361,10 @@ export default function ProfilePage() {
           <span>★</span> Verified
         </span>
       )}
+      {profile.privacy.showBio && profile.bio && (
+        <p className="text-gray-700 leading-relaxed text-base md:text-lg mt-4">{profile.bio}</p>
+      )}
     </div>
-  )
-
-  // Render bio section
-  const BioSection = () => (
-    profile.privacy.showBio && profile.bio ? (
-      <div>
-        <p className="text-gray-700 leading-relaxed text-base md:text-lg">{profile.bio}</p>
-      </div>
-    ) : null
   )
 
   // Render contact section
@@ -379,20 +372,14 @@ export default function ProfilePage() {
     <div className="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-100">
       <h3 className="font-bold text-[#af2d17] mb-4 text-lg">Contact</h3>
       <div className="space-y-3">
-        {profile.privacy.showCity && (profile.city || profile.province) && (
+        {profile.privacy.showPhone && profile.phone && (
           <div className="flex items-center gap-3 text-gray-700">
-            <span className="text-xl">📍</span>
-            <span>{[profile.city, profile.province].filter(Boolean).join(', ')}</span>
-          </div>
-        )}
-        {profile.privacy.showOurEmail && profile.ourEmail && (
-          <div className="flex items-center gap-3 text-gray-700">
-            <span className="text-xl">✉️</span>
+            <span className="text-xl">📞</span>
             <a
-              href={`mailto:${profile.ourEmail}`}
-              className="text-[#af2d17] hover:underline font-semibold text-lg"
+              href={`tel:${profile.phone}`}
+              className="text-[#af2d17] hover:underline"
             >
-              {profile.ourEmail}
+              {profile.phone}
             </a>
           </div>
         )}
@@ -407,14 +394,20 @@ export default function ProfilePage() {
             </a>
           </div>
         )}
-        {profile.privacy.showPhone && profile.phone && (
+        {profile.privacy.showCity && (profile.city || profile.province) && (
           <div className="flex items-center gap-3 text-gray-700">
-            <span className="text-xl">📞</span>
+            <span className="text-xl">📍</span>
+            <span>{[profile.city, profile.province].filter(Boolean).join(', ')}</span>
+          </div>
+        )}
+        {profile.privacy.showOurEmail && profile.ourEmail && (
+          <div className="flex items-center gap-3 text-gray-700">
+            <span className="text-xl">✉️</span>
             <a
-              href={`tel:${profile.phone}`}
-              className="text-[#af2d17] hover:underline"
+              href={`mailto:${profile.ourEmail}`}
+              className="text-[#af2d17] hover:underline font-semibold text-lg"
             >
-              {profile.phone}
+              {profile.ourEmail}
             </a>
           </div>
         )}
@@ -519,7 +512,6 @@ export default function ProfilePage() {
             {/* Right - Info */}
             <div className="lg:w-3/5 space-y-6">
               <NameSection />
-              <BioSection />
               <ContactSection />
             </div>
           </div>
@@ -544,10 +536,9 @@ export default function ProfilePage() {
     const components: Record<BlockType, JSX.Element | null> = {
       photos: profile.photos.length > 0 ? <PhotoCarousel /> : null,
       name: <NameSection />,
-      bio: <BioSection />,
       contact: <ContactSection />,
-      links: <LinksSection />,
       social: <SocialSection />,
+      links: <LinksSection />,
     }
     return components[block.type]
   }
