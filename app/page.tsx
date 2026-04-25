@@ -1,30 +1,21 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useUser, useClerk } from '@clerk/nextjs'
 
 export default function Home() {
   const router = useRouter()
+  const { isSignedIn, user } = useUser()
+  const { signOut } = useClerk()
+
   const [showSignupDropdown, setShowSignupDropdown] = useState(false)
   const [showYourInfoDropdown, setShowYourInfoDropdown] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [userType, setUserType] = useState<'business' | 'personal'>('personal')
   const [searchQuery, setSearchQuery] = useState('')
   const [location, setLocation] = useState('Toronto, ON')
 
-  useEffect(() => {
-    // Check login state from localStorage
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true'
-    const type = localStorage.getItem('userType') as 'business' | 'personal' || 'personal'
-    setIsLoggedIn(loggedIn)
-    setUserType(type)
-  }, [])
-
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn')
-    localStorage.removeItem('userType')
-    localStorage.removeItem('userEmail')
-    setIsLoggedIn(false)
+    signOut()
     setShowYourInfoDropdown(false)
   }
 
@@ -41,27 +32,28 @@ export default function Home() {
       <nav className="bg-[#af2d17] text-white py-4">
         <div className="max-w-7xl mx-auto px-6 flex justify-between items-center">
           <a href="/" className="text-4xl font-bold">our.ca</a>
-          
-          <div className="flex gap-3 relative">
-            {/* Sign Up Button - Always visible */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  setShowSignupDropdown(!showSignupDropdown)
-                  setShowYourInfoDropdown(false)
-                }}
-                className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
-              >
-                sign up
-              </button>
 
-              {showSignupDropdown && (
-                <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
-                  <a href="/signup?type=business" className="block px-4 py-2 hover:bg-gray-100">business</a>
-                  <a href="/signup?type=personal" className="block px-4 py-2 hover:bg-gray-100">personal</a>
-                </div>
-              )}
-            </div>
+          <div className="flex gap-3 relative">
+            {/* Sign Up Button - Only show when not signed in */}
+            {!isSignedIn && (
+              <div className="relative">
+                <button
+                  onClick={() => {
+                    setShowSignupDropdown(!showSignupDropdown)
+                    setShowYourInfoDropdown(false)
+                  }}
+                  className="px-6 py-2 border-2 border-white rounded hover:bg-white hover:text-[#af2d17] transition-all"
+                >
+                  sign up
+                </button>
+
+                {showSignupDropdown && (
+                  <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
+                    <a href="/signup" className="block px-4 py-2 hover:bg-gray-100">sign up</a>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Your Info Button - Always visible */}
             <div className="relative">
@@ -77,7 +69,7 @@ export default function Home() {
 
               {showYourInfoDropdown && (
                 <div className="absolute right-0 mt-2 bg-white text-[#af2d17] rounded shadow-lg py-2 min-w-[150px] z-50">
-                  {!isLoggedIn ? (
+                  {!isSignedIn ? (
                     <a href="/login" className="block px-4 py-2 hover:bg-gray-100 font-medium">log in</a>
                   ) : (
                     <>

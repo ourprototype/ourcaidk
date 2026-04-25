@@ -2,6 +2,9 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import { useUser, useClerk } from '@clerk/nextjs'
+import { getMyProfile, updateProfile } from '@/lib/actions/profile'
+import type { FullProfile } from '@/lib/types/database'
 
 // Supported social platforms
 const SOCIAL_PLATFORMS = [
@@ -116,51 +119,94 @@ const defaultProfile: ProfileData = {
 export default function DashboardPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const { user } = useUser()
+  const { signOut } = useClerk()
   const [isLoaded, setIsLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit')
   const [profile, setProfile] = useState<ProfileData>(defaultProfile)
   const [draggedBlock, setDraggedBlock] = useState<string | null>(null)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
 
-  // Load profile from localStorage
+  // Load profile from Supabase
   useEffect(() => {
-    const savedData = localStorage.getItem('profileData')
-    if (savedData) {
-      try {
-        const parsed = JSON.parse(savedData)
-        setProfile({
-          ...defaultProfile,
-          ...parsed,
-          layout: parsed.layout || defaultLayout,
-          photos: parsed.photos || [],
-          customLinks: parsed.customLinks || [],
-          socialLinks: parsed.socialLinks || [],
-          privacy: { ...defaultProfile.privacy, ...parsed.privacy },
-        })
-      } catch (e) {
-        console.error('Failed to parse profile data')
-      }
-    }
-    setIsLoaded(true)
-  }, [])
+    async function loadProfile() {
+      const data = await getMyProfile()
 
-  // Save profile to localStorage
-  const saveProfile = useCallback(() => {
-    localStorage.setItem('profileData', JSON.stringify(profile))
+      if (!data) {
+        // No profile exists, redirect to onboarding
+        router.push('/onboarding')
+        return
+      }
+
+      // Map Supabase data to local state format
+      setProfile({
+        name: data.profile.name || '',
+        title: data.profile.title || '',
+        bio: data.profile.bio || '',
+        city: data.profile.city || '',
+        province: data.profile.province || '',
+        phone: data.profile.phone || '',
+        email: data.profile.email || '',
+        ourEmail: data.profile.our_email || '',
+        photos: data.photos.map(p => ({
+          id: p.id,
+          url: p.url,
+          isMain: p.is_main,
+          order: p.display_order,
+        })),
+        customLinks: data.links.map(l => ({
+          id: l.id,
+          label: l.label || '',
+          url: l.url,
+          displayType: l.display_type,
+          thumbnailUrl: l.thumbnail_url || undefined,
+        })),
+        socialLinks: data.socialLinks.map(s => ({
+          id: s.id,
+          platform: s.platform,
+          url: s.url,
+        })),
+        layout: data.profile.layout || defaultLayout,
+        privacy: data.profile.privacy || defaultProfile.privacy,
+        isPremium: data.profile.is_premium,
+        isVerified: data.profile.is_verified,
+      })
+      setIsLoaded(true)
+    }
+
+    loadProfile()
+  }, [router])
+
+  // Save profile to Supabase
+  const saveProfile = useCallback(async () => {
+    await updateProfile({
+      name: profile.name,
+      title: profile.title,
+      bio: profile.bio,
+      city: profile.city,
+      province: profile.province,
+      phone: profile.phone,
+      email: profile.email,
+      our_email: profile.ourEmail,
+      layout: profile.layout,
+      privacy: profile.privacy,
+      is_premium: profile.isPremium,
+      is_verified: profile.isVerified,
+    })
   }, [profile])
 
-  // Auto-save on changes
+  // Auto-save on changes (debounced)
   useEffect(() => {
     if (isLoaded) {
-      saveProfile()
+      const timeout = setTimeout(() => {
+        saveProfile()
+      }, 1000) // Debounce 1 second
+      return () => clearTimeout(timeout)
     }
   }, [profile, isLoaded, saveProfile])
 
   const handleLogout = () => {
-    localStorage.removeItem('isLoggedIn')
-    localStorage.removeItem('userType')
-    localStorage.removeItem('profileData')
-    router.push('/')
+    signOut({ redirectUrl: '/' })
   }
 
   // Photo management

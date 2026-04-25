@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import { getMyProfile, getProfileById } from '@/lib/actions/profile'
+import type { FullProfile } from '@/lib/types/database'
 
 // Supported social platforms
 const SOCIAL_PLATFORMS = [
@@ -17,72 +19,6 @@ const SOCIAL_PLATFORMS = [
   { id: 'github', name: 'GitHub' },
   { id: 'behance', name: 'Behance' },
   { id: 'website', name: 'Website' },
-]
-
-// Layout block types
-type BlockType = 'photos' | 'name' | 'contact' | 'social' | 'links'
-
-interface LayoutBlock {
-  id: string
-  type: BlockType
-  order: number
-}
-
-interface Photo {
-  id: string
-  url: string
-  isMain: boolean
-  order: number
-}
-
-interface CustomLink {
-  id: string
-  label: string
-  url: string
-  displayType: 'text' | 'thumbnail'
-  thumbnailUrl?: string
-}
-
-interface SocialLink {
-  id: string
-  platform: string
-  url: string
-}
-
-interface ProfileData {
-  name: string
-  title: string
-  bio: string
-  city: string
-  province: string
-  phone: string
-  email: string
-  ourEmail: string
-  photos: Photo[]
-  customLinks: CustomLink[]
-  socialLinks: SocialLink[]
-  layout: LayoutBlock[]
-  privacy: {
-    showName: boolean
-    showTitle: boolean
-    showBio: boolean
-    showCity: boolean
-    showPhone: boolean
-    showEmail: boolean
-    showOurEmail: boolean
-    showLinks: boolean
-    showSocial: boolean
-  }
-  isPremium: boolean
-  isVerified: boolean
-}
-
-const defaultLayout: LayoutBlock[] = [
-  { id: 'photos', type: 'photos', order: 0 },
-  { id: 'name', type: 'name', order: 1 },
-  { id: 'contact', type: 'contact', order: 2 },
-  { id: 'social', type: 'social', order: 3 },
-  { id: 'links', type: 'links', order: 4 },
 ]
 
 // Social Icon Component
@@ -152,83 +88,51 @@ function SocialIcon({ platform, className = "w-5 h-5" }: { platform: string; cla
   return icons[platform] || icons.website
 }
 
+// Default layout and privacy
+const defaultLayout = [
+  { id: 'photos', type: 'photos' as const, order: 0 },
+  { id: 'name', type: 'name' as const, order: 1 },
+  { id: 'contact', type: 'contact' as const, order: 2 },
+  { id: 'social', type: 'social' as const, order: 3 },
+  { id: 'links', type: 'links' as const, order: 4 },
+]
+
+const defaultPrivacy = {
+  showName: true,
+  showTitle: true,
+  showBio: true,
+  showCity: true,
+  showPhone: true,
+  showEmail: true,
+  showOurEmail: true,
+  showLinks: true,
+  showSocial: true,
+}
+
 export default function ProfilePage() {
   const params = useParams()
   const profileId = params.id as string
-  const [profile, setProfile] = useState<ProfileData | null>(null)
+  const [profileData, setProfileData] = useState<FullProfile | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0)
 
   useEffect(() => {
-    // For "me" profile, load from localStorage
-    if (profileId === 'me') {
-      const savedData = localStorage.getItem('profileData')
-      if (savedData) {
-        try {
-          const parsed = JSON.parse(savedData)
-          setProfile({
-            name: parsed.name || '',
-            title: parsed.title || '',
-            bio: parsed.bio || '',
-            city: parsed.city || '',
-            province: parsed.province || '',
-            phone: parsed.phone || '',
-            email: parsed.email || '',
-            ourEmail: parsed.ourEmail || '',
-            photos: parsed.photos || [],
-            customLinks: parsed.customLinks || [],
-            socialLinks: parsed.socialLinks || [],
-            layout: parsed.layout || defaultLayout,
-            privacy: {
-              showName: parsed.privacy?.showName ?? true,
-              showTitle: parsed.privacy?.showTitle ?? true,
-              showBio: parsed.privacy?.showBio ?? true,
-              showCity: parsed.privacy?.showCity ?? true,
-              showPhone: parsed.privacy?.showPhone ?? true,
-              showEmail: parsed.privacy?.showEmail ?? true,
-              showOurEmail: parsed.privacy?.showOurEmail ?? true,
-              showLinks: parsed.privacy?.showLinks ?? true,
-              showSocial: parsed.privacy?.showSocial ?? true,
-            },
-            isPremium: parsed.isPremium || false,
-            isVerified: parsed.isVerified || false,
-          })
-        } catch (e) {
-          console.error('Failed to parse profile')
-        }
+    async function loadProfile() {
+      setIsLoading(true)
+
+      let data: FullProfile | null = null
+
+      if (profileId === 'me') {
+        data = await getMyProfile()
+      } else {
+        data = await getProfileById(profileId)
       }
-    } else {
-      // For other profiles, we'd fetch from API
-      // For demo, show a sample profile
-      setProfile({
-        name: 'Sample User',
-        title: 'Designer & Developer',
-        bio: 'This is a sample profile. In production, this would load from your database.',
-        city: 'Toronto',
-        province: 'ON',
-        phone: '(416) 555-1234',
-        email: 'sample@example.com',
-        ourEmail: 'sample@our.ca',
-        photos: [{ id: '1', url: '', isMain: true, order: 0 }],
-        customLinks: [],
-        socialLinks: [],
-        layout: defaultLayout,
-        privacy: {
-          showName: true,
-          showTitle: true,
-          showBio: true,
-          showCity: true,
-          showPhone: true,
-          showEmail: true,
-          showOurEmail: true,
-          showLinks: true,
-          showSocial: true,
-        },
-        isPremium: false,
-        isVerified: false,
-      })
+
+      setProfileData(data)
+      setIsLoading(false)
     }
-    setIsLoading(false)
+
+    loadProfile()
   }, [profileId])
 
   if (isLoading) {
@@ -239,7 +143,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!profile) {
+  if (!profileData) {
     return (
       <div className="min-h-screen bg-white">
         <nav className="bg-[#af2d17] text-white py-4">
@@ -266,10 +170,19 @@ export default function ProfilePage() {
     )
   }
 
-  const sortedPhotos = [...profile.photos].sort((a, b) => {
-    if (a.isMain) return -1
-    if (b.isMain) return 1
-    return a.order - b.order
+  // Extract data from FullProfile
+  const { profile, photos, links, socialLinks } = profileData
+  const privacy = profile.privacy || defaultPrivacy
+  const layout = profile.layout || defaultLayout
+
+  const displayName = profile.profile_type === 'business'
+    ? (profile.business_name || profile.name)
+    : profile.name
+
+  const sortedPhotos = [...photos].sort((a, b) => {
+    if (a.is_main) return -1
+    if (b.is_main) return 1
+    return a.display_order - b.display_order
   })
 
   const nextPhoto = () => {
@@ -286,59 +199,46 @@ export default function ProfilePage() {
       <div className="relative aspect-square w-full max-w-sm mx-auto lg:mx-0 bg-[#af2d17] rounded-xl overflow-hidden shadow-lg">
         {sortedPhotos.length > 0 ? (
           <>
-            {/* Photo display - using initials as placeholder */}
             <div className="w-full h-full flex items-center justify-center text-white">
               <span className="text-7xl md:text-8xl font-bold">
-                {profile.name ? profile.name.split(' ').map(n => n[0]).join('') : '?'}
+                {displayName ? displayName.split(' ').map(n => n[0]).join('') : '?'}
               </span>
             </div>
 
-            {/* Navigation arrows */}
             {sortedPhotos.length > 1 && (
               <>
                 <button
                   onClick={prevPhoto}
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-colors flex items-center justify-center text-xl"
-                  aria-label="Previous photo"
                 >
                   ‹
                 </button>
                 <button
                   onClick={nextPhoto}
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-colors flex items-center justify-center text-xl"
-                  aria-label="Next photo"
                 >
                   ›
                 </button>
 
-                {/* Dot indicators */}
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                   {sortedPhotos.map((_, idx) => (
                     <button
                       key={idx}
                       onClick={() => setCurrentPhotoIndex(idx)}
                       className={`w-2.5 h-2.5 rounded-full transition-all ${
-                        idx === currentPhotoIndex
-                          ? 'bg-white scale-110'
-                          : 'bg-white/50 hover:bg-white/70'
+                        idx === currentPhotoIndex ? 'bg-white scale-110' : 'bg-white/50 hover:bg-white/70'
                       }`}
-                      aria-label={`Go to photo ${idx + 1}`}
                     />
                   ))}
                 </div>
               </>
             )}
-
-            {/* Photo counter */}
-            {sortedPhotos.length > 1 && (
-              <div className="absolute top-3 right-3 bg-black/40 backdrop-blur-sm text-white text-sm px-2 py-1 rounded-full">
-                {currentPhotoIndex + 1} / {sortedPhotos.length}
-              </div>
-            )}
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/50 text-lg">
-            No photo
+          <div className="w-full h-full flex items-center justify-center text-white">
+            <span className="text-7xl md:text-8xl font-bold">
+              {displayName ? displayName.split(' ').map(n => n[0]).join('') : '?'}
+            </span>
           </div>
         )}
       </div>
@@ -348,21 +248,24 @@ export default function ProfilePage() {
   // Render name, title & bio section
   const NameSection = () => (
     <div>
-      {profile.privacy.showName && profile.name && (
+      {privacy.showName && displayName && (
         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-[#af2d17]">
-          {profile.name}
+          {displayName}
         </h1>
       )}
-      {profile.privacy.showTitle && profile.title && (
+      {privacy.showTitle && profile.title && (
         <p className="text-lg md:text-xl text-gray-600 mt-1">{profile.title}</p>
       )}
-      {profile.isPremium && (
+      {profile.is_premium && (
         <span className="inline-flex items-center gap-1 mt-3 px-4 py-1.5 bg-gradient-to-r from-yellow-400 to-yellow-600 text-white text-sm font-bold rounded-full shadow-md">
           <span>★</span> Verified
         </span>
       )}
-      {profile.privacy.showBio && profile.bio && (
+      {privacy.showBio && profile.bio && (
         <p className="text-gray-700 leading-relaxed text-base md:text-lg mt-4">{profile.bio}</p>
+      )}
+      {profile.profile_type === 'business' && profile.category && (
+        <p className="text-gray-500 mt-2">{profile.category}</p>
       )}
     </div>
   )
@@ -372,43 +275,48 @@ export default function ProfilePage() {
     <div className="bg-gray-50 rounded-xl p-4 md:p-6 border border-gray-100">
       <h3 className="font-bold text-[#af2d17] mb-4 text-lg">Contact</h3>
       <div className="space-y-3">
-        {profile.privacy.showPhone && profile.phone && (
+        {privacy.showPhone && profile.phone && (
           <div className="flex items-center gap-3 text-gray-700">
             <span className="text-xl">📞</span>
-            <a
-              href={`tel:${profile.phone}`}
-              className="text-[#af2d17] hover:underline"
-            >
+            <a href={`tel:${profile.phone}`} className="text-[#af2d17] hover:underline">
               {profile.phone}
             </a>
           </div>
         )}
-        {profile.privacy.showEmail && profile.email && (
+        {privacy.showEmail && profile.email && (
           <div className="flex items-center gap-3 text-gray-700">
             <span className="text-xl">✉️</span>
-            <a
-              href={`mailto:${profile.email}`}
-              className="text-[#af2d17] hover:underline"
-            >
+            <a href={`mailto:${profile.email}`} className="text-[#af2d17] hover:underline">
               {profile.email}
             </a>
           </div>
         )}
-        {profile.privacy.showCity && (profile.city || profile.province) && (
+        {privacy.showCity && (profile.city || profile.province) && (
           <div className="flex items-center gap-3 text-gray-700">
             <span className="text-xl">📍</span>
             <span>{[profile.city, profile.province].filter(Boolean).join(', ')}</span>
           </div>
         )}
-        {profile.privacy.showOurEmail && profile.ourEmail && (
+        {privacy.showOurEmail && profile.our_email && (
           <div className="flex items-center gap-3 text-gray-700">
             <span className="text-xl">✉️</span>
-            <a
-              href={`mailto:${profile.ourEmail}`}
-              className="text-[#af2d17] hover:underline font-semibold text-lg"
-            >
-              {profile.ourEmail}
+            <a href={`mailto:${profile.our_email}`} className="text-[#af2d17] hover:underline font-semibold text-lg">
+              {profile.our_email}
             </a>
+          </div>
+        )}
+        {profile.profile_type === 'business' && profile.website && (
+          <div className="flex items-center gap-3 text-gray-700">
+            <span className="text-xl">🌐</span>
+            <a href={profile.website} target="_blank" rel="noopener noreferrer" className="text-[#af2d17] hover:underline">
+              {profile.website}
+            </a>
+          </div>
+        )}
+        {profile.profile_type === 'business' && profile.hours && (
+          <div className="flex items-center gap-3 text-gray-700">
+            <span className="text-xl">🕐</span>
+            <span>{profile.hours}</span>
           </div>
         )}
       </div>
@@ -417,12 +325,12 @@ export default function ProfilePage() {
 
   // Render links section
   const LinksSection = () => (
-    profile.isPremium && profile.privacy.showLinks && profile.customLinks.length > 0 ? (
+    profile.is_premium && privacy.showLinks && links.length > 0 ? (
       <div>
         <h3 className="font-bold text-[#af2d17] mb-4 text-lg">Links</h3>
         <div className="flex flex-wrap gap-4">
-          {profile.customLinks.map((link) => (
-            link.displayType === 'thumbnail' ? (
+          {links.map((link) => (
+            link.display_type === 'thumbnail' ? (
               <a
                 key={link.id}
                 href={link.url}
@@ -431,8 +339,8 @@ export default function ProfilePage() {
                 className="block w-28 group"
               >
                 <div className="aspect-square bg-gray-100 rounded-lg mb-2 overflow-hidden border-2 border-gray-200 group-hover:border-[#af2d17] transition-colors">
-                  {link.thumbnailUrl ? (
-                    <img src={link.thumbnailUrl} alt={link.label} className="w-full h-full object-cover" />
+                  {link.thumbnail_url ? (
+                    <img src={link.thumbnail_url} alt={link.label || ''} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">🔗</div>
                   )}
@@ -461,11 +369,11 @@ export default function ProfilePage() {
 
   // Render social section
   const SocialSection = () => (
-    profile.isPremium && profile.privacy.showSocial && profile.socialLinks.length > 0 ? (
+    profile.is_premium && privacy.showSocial && socialLinks.length > 0 ? (
       <div>
         <h3 className="font-bold text-[#af2d17] mb-4 text-lg">Connect</h3>
         <div className="flex flex-wrap gap-3">
-          {profile.socialLinks.map((link) => (
+          {socialLinks.map((link) => (
             <a
               key={link.id}
               href={link.url}
@@ -483,10 +391,9 @@ export default function ProfilePage() {
   )
 
   // For free users, use fixed two-column layout
-  if (!profile.isPremium) {
+  if (!profile.is_premium) {
     return (
       <div className="min-h-screen bg-white">
-        {/* Header */}
         <nav className="bg-[#af2d17] text-white py-4">
           <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
             <a href="/" className="text-3xl md:text-4xl font-bold">our.ca</a>
@@ -501,15 +408,11 @@ export default function ProfilePage() {
           </div>
         </nav>
 
-        {/* Profile Content - Fixed Layout */}
         <div className="max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12">
           <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
-            {/* Left - Photo */}
             <div className="lg:w-2/5">
               <PhotoCarousel />
             </div>
-
-            {/* Right - Info */}
             <div className="lg:w-3/5 space-y-6">
               <NameSection />
               <ContactSection />
@@ -517,7 +420,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Footer */}
         <div className="bg-[#af2d17] text-white py-4 mt-12">
           <div className="max-w-7xl mx-auto px-4 md:px-6 text-center md:text-left">
             <p className="text-sm opacity-80">
@@ -530,11 +432,13 @@ export default function ProfilePage() {
   }
 
   // Premium users get custom layout
-  const layoutToUse = profile.layout.sort((a, b) => a.order - b.order)
+  const layoutToUse = [...layout].sort((a, b) => a.order - b.order)
 
-  const renderBlock = (block: LayoutBlock) => {
+  type BlockType = 'photos' | 'name' | 'contact' | 'social' | 'links'
+
+  const renderBlock = (block: { id: string; type: BlockType; order: number }) => {
     const components: Record<BlockType, JSX.Element | null> = {
-      photos: profile.photos.length > 0 ? <PhotoCarousel /> : null,
+      photos: <PhotoCarousel />,
       name: <NameSection />,
       contact: <ContactSection />,
       social: <SocialSection />,
@@ -545,7 +449,6 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <nav className="bg-[#af2d17] text-white py-4">
         <div className="max-w-7xl mx-auto px-4 md:px-6 flex justify-between items-center">
           <a href="/" className="text-3xl md:text-4xl font-bold">our.ca</a>
@@ -560,21 +463,15 @@ export default function ProfilePage() {
         </div>
       </nav>
 
-      {/* Premium Profile Content - Custom Layout */}
       <div className="max-w-4xl mx-auto px-4 md:px-6 py-8 md:py-12">
         <div className="space-y-8">
           {layoutToUse.map((block) => {
-            const content = renderBlock(block)
-            return content ? (
-              <div key={block.id} className="animate-fade-in">
-                {content}
-              </div>
-            ) : null
+            const content = renderBlock(block as { id: string; type: BlockType; order: number })
+            return content ? <div key={block.id}>{content}</div> : null
           })}
         </div>
       </div>
 
-      {/* Footer */}
       <div className="bg-[#af2d17] text-white py-4 mt-12">
         <div className="max-w-7xl mx-auto px-4 md:px-6 text-center md:text-left">
           <p className="text-sm opacity-80">

@@ -8,9 +8,14 @@
     "start": "next start"
   },
   "dependencies": {
+    "@clerk/nextjs": "^5.7.6",
+    "@supabase/ssr": "^0.10.2",
+    "@supabase/supabase-js": "^2.104.1",
     "next": "14.0.4",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "resend": "^6.12.2",
+    "svix": "^1.92.2"
   },
   "devDependencies": {
     "@types/node": "^20",
